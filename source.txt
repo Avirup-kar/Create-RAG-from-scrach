@@ -1,0 +1,1 @@
+https://www.devguild.io/blog/build-a-rag-app-in-python-without-langchain?utm_source=chatgpt.com
