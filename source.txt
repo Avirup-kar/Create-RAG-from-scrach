@@ -1,1 +1,6 @@
 https://www.devguild.io/blog/build-a-rag-app-in-python-without-langchain?utm_source=chatgpt.com
+
+Des = This article provides a step-by-step guide on how to build a Retrieval-Augmented Generation (RAG) application 
+in Python without using LangChain. It covers the necessary tools, libraries, and techniques to create a 
+RAG app that can retrieve relevant information and generate responses based on that information. The guide is suitable for 
+developers looking to implement RAG functionality in their applications while avoiding the complexities of LangChain.
