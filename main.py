@@ -95,7 +95,7 @@ def build_prompt(question, context_chunks):
 def generate_answer(client, prompt):
     """Send the prompt to Gemini and return the generated answer."""
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.8-flash",
         contents=prompt,
     )
     return response.text
