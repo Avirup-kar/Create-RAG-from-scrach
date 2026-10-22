@@ -267,7 +267,6 @@ def build_prompt(question, context_chunks):
 # 9. Generate answer
 # -----------------------------
 
-
 def generate_answer(client, prompt, max_retries=5):
     """Generate an answer with retries for temporary API errors."""
 
