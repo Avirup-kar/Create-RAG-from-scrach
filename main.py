@@ -4,9 +4,11 @@ import json
 import time
 import pypdf
 import numpy as np
+import chromadb
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+import random
  
  
 def extract_text(pdf_path):
@@ -18,7 +20,11 @@ def extract_text(pdf_path):
  
 def chunk_text(text, chunk_size=500, overlap=100):
     """Split text into overlapping chunks of fixed size."""
+    if overlap >= chunk_size:
+        raise ValueError("overlap must be smaller than chunk_size")
+    
     chunks = []
+    
     for i in range(0, len(text), chunk_size - overlap):
         chunks.append(text[i : i + chunk_size])
     return chunks
@@ -28,6 +34,10 @@ def create_client():
     """Load the API key from the environment and return a Gemini client."""
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "GEMINI_API_KEY not found. Check your .env file."
+        )
     client = genai.Client(api_key=api_key)
     return client
  
@@ -92,13 +102,44 @@ def build_prompt(question, context_chunks):
     return prompt
  
  
-def generate_answer(client, prompt):
-    """Send the prompt to Gemini and return the generated answer."""
-    response = client.models.generate_content(
-        model="gemini-3.8-flash",
-        contents=prompt,
-    )
-    return response.text
+
+def generate_answer(client, prompt, max_retries=5):
+    """Generate an answer with retries for temporary API errors."""
+
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt,
+            )
+            return response.text or "No answer was generated."
+
+        except Exception as e:
+            error_message = str(e)
+
+            # Retry only temporary server errors and rate limits.
+            retryable = (
+                "503" in error_message
+                or "429" in error_message
+                or "500" in error_message
+                or "UNAVAILABLE" in error_message
+                or "RESOURCE_EXHAUSTED" in error_message
+                or "INTERNAL" in error_message
+            )
+
+            if not retryable or attempt == max_retries - 1:
+                raise
+
+            delay = min(2 ** attempt + random.random(), 30)
+
+            print(
+                f"Gemini is temporarily unavailable. "
+                f"Retrying in {delay:.1f} seconds "
+                f"(attempt {attempt + 1}/{max_retries})..."
+            )
+
+            time.sleep(delay)
+
  
  
 def save_embeddings(chunks, embeddings, cache_path):
