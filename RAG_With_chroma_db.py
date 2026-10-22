@@ -8,6 +8,7 @@ from pathlib import Path
 import chromadb
 from dotenv import load_dotenv
 from google import genai
+from groq import Groq
 from google.genai import types
 import random
 
@@ -272,11 +273,15 @@ def generate_answer(client, prompt, max_retries=5):
 
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
-                model="gemini-3.5-flash",
-                contents=prompt,
-            )
-            return response.text or "No answer was generated."
+            client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+            
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+             )
+            return response.choices[0].message.content
 
         except Exception as e:
             error_message = str(e)
