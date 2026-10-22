@@ -1,0 +1,4 @@
+
+//This is the command to run the RAG model with Chroma database using the specified PDF document and query.
+
+  python RAG_With_chroma_db.py "documents/Avirup_kar_CV.pdf" "What is my top skill"
