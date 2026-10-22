@@ -8,6 +8,7 @@ import chromadb
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from groq import Groq
 import random
  
  
@@ -103,16 +104,20 @@ def build_prompt(question, context_chunks):
  
  
 
-def generate_answer(client, prompt, max_retries=5):
+def generate_answer(prompt, max_retries=5):
     """Generate an answer with retries for temporary API errors."""
 
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=prompt,
-            )
-            return response.text or "No answer was generated."
+             client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+                        
+             response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+             )
+             return response.choices[0].message.content
 
         except Exception as e:
             error_message = str(e)
@@ -179,7 +184,7 @@ def main():
  
     top_chunks = search(client, question, chunks, embeddings)
     prompt = build_prompt(question, top_chunks)
-    answer = generate_answer(client, prompt)
+    answer = generate_answer(prompt)
  
     print("\nAnswer:")
     print(answer)
